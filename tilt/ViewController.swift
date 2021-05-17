@@ -18,6 +18,9 @@ class ViewController: UIViewController {
     @IBOutlet weak var gNoise: UILabel!
     
     @IBOutlet weak var stopButton: UIButton!
+    @IBOutlet weak var accelTilt: UIButton!
+    
+    var measureTilt:Bool = true
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -25,11 +28,13 @@ class ViewController: UIViewController {
     }
     
     @IBAction func measureAccelBiasNoise(_ sender: Any) {
+        measureTilt = false
         startAccelerometers()
         accelBiasNoise.isEnabled = false
     }
     
     @IBAction func measureGyroBiasNoise(_ sender: Any) {
+        measureTilt = false
         startGyros()
         gyroBiasNoise.isEnabled = false
     }
@@ -37,8 +42,15 @@ class ViewController: UIViewController {
     @IBAction func stop(_ sender: Any) {
         accelBiasNoise.isEnabled = true
         gyroBiasNoise.isEnabled = true
+        accelTilt.isEnabled = true
         stopAccels()
         stopGyros()
+    }
+    
+    @IBAction func measureAccelTilt(_ sender: Any) {
+        measureTilt = true
+        startAccelerometers()
+        accelTilt.isEnabled = false
     }
     
     let motion = CMMotionManager()
@@ -56,6 +68,9 @@ class ViewController: UIViewController {
     var gyroSum2: [Double] = [Double](repeating: 0.0, count: 3)
     var gyroBias: [Double] = [Double](repeating: 0.0, count: 3)
     var gyroNoise: [Double] = [Double](repeating: 0.0, count: 3)
+    
+    var tilt: [Double] = [Double](repeating: 0.0, count: 2) // tilt is only roll and pitch
+
 //    var gyro_file_url:URL?
 //    var gyro_fileHandle:FileHandle?
     
@@ -84,29 +99,42 @@ class ViewController: UIViewController {
                 let text = "\(timestamp), \(x), \(y), \(z)\n"
                 print ("\(counter) A: \(text)")
                 
-                if counter < numSamples {
-                    counter = counter+1
-                    accelSum[0] = accelSum[0] + x
-                    accelSum[1] = accelSum[1] + y
-                    accelSum[2] = accelSum[2] + z
-                    
-                    accelSum2[0] = accelSum2[0] + x*x
-                    accelSum2[1] = accelSum2[1] + y*y
-                    accelSum2[2] = accelSum2[2] + z*z
-                } else {
-                    for i in 0...2 {
-                        accelBias[i] = accelSum[i] / counter
-                        accelNoise[i] = accelSum2[i] / counter - accelBias[i] * accelBias[i]
+                if !measureTilt {
+                    if counter < numSamples {
+                        counter = counter+1
+                        accelSum[0] = accelSum[0] + x
+                        accelSum[1] = accelSum[1] + y
+                        accelSum[2] = accelSum[2] + z
+                        
+                        accelSum2[0] = accelSum2[0] + x*x
+                        accelSum2[1] = accelSum2[1] + y*y
+                        accelSum2[2] = accelSum2[2] + z*z
+                    } else {
+                        for i in 0...2 {
+                            accelBias[i] = accelSum[i] / counter
+                            accelNoise[i] = accelSum2[i] / counter - accelBias[i] * accelBias[i]
+                        }
+                        print ("Accelerometer Bias: \(accelBias[0]), \(accelBias[1]), \(accelBias[2])")
+                        print ("Accelerometer Noise: \(accelNoise[0]), \(accelNoise[1]), \(accelNoise[2])")
+                        
+                        accelSum = [Double](repeating: 0.0, count: 3)
+                        accelSum2 = [Double](repeating: 0.0, count: 3)
+                        counter = 0
+                        stop((Any).self)
                     }
-                    print ("Accelerometer Bias: \(accelBias[0]), \(accelBias[1]), \(accelBias[2])")
-                    print ("Accelerometer Noise: \(accelNoise[0]), \(accelNoise[1]), \(accelNoise[2])")
+                } else {
+                    let norm:Double = sqrt(x*x + y*y + z*z)
+                    let xn = x / norm
+                    let yn = y / norm
+                    let zn = z / norm
                     
-//                    aBias.text = "\(accelBias[0]), \(accelBias[1]), \(accelBias[2])"
-
-                    accelSum = [Double](repeating: 0.0, count: 3)
-                    accelSum2 = [Double](repeating: 0.0, count: 3)
-                    counter = 0
-                    stop((Any).self)
+                    let roll:Double = -atan2(-xn, zn)
+                    let pitch:Double = -atan2(-yn, copysign(1.0, zn) * sqrt(xn*xn + zn*zn))
+                    
+                    tilt[0] = roll // roll
+                    tilt[1] = pitch // pitch
+                    
+                    print ("Accelerometer Tilt: \(tilt[0]), \(tilt[1])")
                 }
              }
           })

@@ -27,6 +27,9 @@
                                 <rect key="frame" x="144" y="462" width="126" height="30"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <state key="normal" title="Accelerometer Tilt"/>
+                                <connections>
+                                    <action selector="measureAccelTilt:" destination="BYZ-38-t0r" eventType="touchUpInside" id="vHK-p5-Nr2"/>
+                                </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="YHk-XQ-Tag">
                                 <rect key="frame" x="157" y="539" width="100" height="30"/>
@@ -104,6 +107,7 @@
                         <outlet property="aBias" destination="Kq0-El-G8m" id="fPm-DY-7kx"/>
                         <outlet property="aNoise" destination="5uI-fn-441" id="cyF-M6-u1F"/>
                         <outlet property="accelBiasNoise" destination="nW2-kI-A58" id="1wx-sP-FPQ"/>
+                        <outlet property="accelTilt" destination="eF8-Me-5pV" id="fT3-OP-Plg"/>
                         <outlet property="gBias" destination="fev-TW-eur" id="Vdq-GR-EJG"/>
                         <outlet property="gNoise" destination="Mq8-Xz-8eW" id="Z56-rY-hsS"/>
                         <outlet property="gyroBiasNoise" destination="dXu-6f-jZH" id="8Rl-Zw-ZMQ"/>
