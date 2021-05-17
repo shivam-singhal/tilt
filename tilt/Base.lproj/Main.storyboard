@@ -77,6 +77,9 @@
                                 <rect key="frame" x="241" y="128" width="109" height="30"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <state key="normal" title="Gyro Bias/Noise"/>
+                                <connections>
+                                    <action selector="measureGyroBiasNoise:" destination="BYZ-38-t0r" eventType="touchUpInside" id="1SC-GQ-60M"/>
+                                </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="IGc-89-dtk">
                                 <rect key="frame" x="191" y="196" width="32" height="30"/>
@@ -103,6 +106,7 @@
                         <outlet property="accelBiasNoise" destination="nW2-kI-A58" id="1wx-sP-FPQ"/>
                         <outlet property="gBias" destination="fev-TW-eur" id="Vdq-GR-EJG"/>
                         <outlet property="gNoise" destination="Mq8-Xz-8eW" id="Z56-rY-hsS"/>
+                        <outlet property="gyroBiasNoise" destination="dXu-6f-jZH" id="8Rl-Zw-ZMQ"/>
                         <outlet property="stopButton" destination="IGc-89-dtk" id="1Fz-ZZ-3PA"/>
                     </connections>
                 </viewController>
