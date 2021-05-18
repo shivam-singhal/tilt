@@ -21,6 +21,9 @@ class ViewController: UIViewController {
     @IBOutlet weak var accelTilt: UIButton!
     @IBOutlet weak var gyroTilt: UIButton!
     
+    @IBOutlet weak var rollLabel: UILabel!
+    @IBOutlet weak var pitchLabel: UILabel!
+    
     var measureTilt:Bool = true
     
     override func viewDidLoad() {
@@ -66,19 +69,19 @@ class ViewController: UIViewController {
     
     let motion = CMMotionManager()
     var counter:Double = 0
-    let numSamples:Double = 200
+    let numSamples:Double = 2000
     
     var timer_accel:Timer?
     var accelSum: [Double] = [Double](repeating: 0.0, count: 3)
     var accelSum2: [Double] = [Double](repeating: 0.0, count: 3)
-    var accelBias: [Double] = [Double](repeating: 0.0, count: 3)
-    var accelNoise: [Double] = [Double](repeating: 0.0, count: 3)
+    var accelBias: [Double] = [0.0057570114135742185, -0.0065317611694335935, -0.9995346145629883]
+    var accelNoise: [Double] = [1.8159588456095667e-05, 3.023396527802111e-06, 9.253116324492439e-06]
     
     var timer_gyro:Timer?
     var gyroSum: [Double] = [Double](repeating: 0.0, count: 3)
     var gyroSum2: [Double] = [Double](repeating: 0.0, count: 3)
-    var gyroBias: [Double] = [Double](repeating: 0.0, count: 3)
-    var gyroNoise: [Double] = [Double](repeating: 0.0, count: 3)
+    var gyroBias: [Double] = [0.006122914629653678, 0.005937995244341437, -0.01013290776568465]
+    var gyroNoise: [Double] = [2.008710893789675e-06, 1.8565217835566259e-06, 1.7285461378278947e-06]
     
     var tilt: [Double] = [Double](repeating: 0.0, count: 2) // tilt is only roll and pitch
     
@@ -112,7 +115,7 @@ class ViewController: UIViewController {
                 
                 let timestamp = NSDate().timeIntervalSince1970
                 let text = "\(timestamp), \(x), \(y), \(z)\n"
-                print ("\(counter) A: \(text)")
+//                print ("\(counter) A: \(text)")
                 
                 if !measureTilt {
                     if counter < numSamples {
@@ -132,6 +135,11 @@ class ViewController: UIViewController {
                         print ("Accelerometer Bias: \(accelBias[0]), \(accelBias[1]), \(accelBias[2])")
                         print ("Accelerometer Noise: \(accelNoise[0]), \(accelNoise[1]), \(accelNoise[2])")
                         
+                        aBias.text = String(format: "Accelerometer Bias:  %.3f, %.3f, %.3f", accelBias[0], accelBias[1], accelBias[2])
+                        aNoise.text = String(format: "Accelerometer Noise:  %.3f, %.3f, %.3f", accelNoise[0], accelNoise[1], accelNoise[2])
+                        aBias.sizeToFit()
+                        aNoise.sizeToFit()
+                        
                         accelSum = [Double](repeating: 0.0, count: 3)
                         accelSum2 = [Double](repeating: 0.0, count: 3)
                         counter = 0
@@ -148,6 +156,12 @@ class ViewController: UIViewController {
                     
                     tilt[0] = roll // roll
                     tilt[1] = pitch // pitch
+                    
+                    rollLabel.text = String(format: "%.3f", roll)
+                    pitchLabel.text = String(format: "%.3f", pitch)
+                    
+                    rollLabel.sizeToFit()
+                    pitchLabel.sizeToFit()
                     
                     print ("Accelerometer Tilt: \(tilt[0]), \(tilt[1])")
                 }
@@ -175,7 +189,7 @@ class ViewController: UIViewController {
                                 
                 let timestamp = NSDate().timeIntervalSince1970
                 let text = "\(timestamp), \(x), \(y), \(z)\n"
-                print ("\(counter) G: \(text)")
+//                print ("\(counter) G: \(text)")
                 
                 if !measureTilt {
                     if counter < numSamples {
@@ -195,7 +209,10 @@ class ViewController: UIViewController {
                         print ("Gyro Bias: \(gyroBias[0]), \(gyroBias[1]), \(gyroBias[2])")
                         print ("Gyro Noise: \(gyroNoise[0]), \(gyroNoise[1]), \(gyroNoise[2])")
                         
-    //                    aBias.text = "\(accelBias[0]), \(accelBias[1]), \(accelBias[2])"
+                        gBias.text = String(format: "Gyro Bias:  %.3f, %.3f, %.3f", gyroBias[0], gyroBias[1], gyroBias[2])
+                        gNoise.text = String(format: "Gyro Noise:  %.3f, %.3f, %.3f", gyroNoise[0], gyroNoise[1], gyroNoise[2])
+                        gBias.sizeToFit()
+                        gNoise.sizeToFit()
 
                         gyroSum = [Double](repeating: 0.0, count: 3)
                         gyroSum2 = [Double](repeating: 0.0, count: 3)
@@ -207,14 +224,22 @@ class ViewController: UIViewController {
                     print("dt: \(dt)")
 
                     let xn = (x - gyroBias[0]) * dt
-//                    let yn = y - gyroBias[1]
+                    let yn = (y - gyroBias[1]) * dt
                     let zn = (z - gyroBias[2]) * dt
                     
-                    prevRoll = prevRoll + xn
-                    prevPitch = prevPitch + zn
+                    // because of how I defined pitch/roll
+                    // pitch corresponds with x-axis, and roll with y-axis
+                    prevRoll = prevRoll + yn
+                    prevPitch = prevPitch + xn
                     
                     tilt[0] = prevRoll // roll
                     tilt[1] = prevPitch // pitch
+                    
+                    rollLabel.text = String(format: "%.3f", prevRoll)
+                    pitchLabel.text = String(format: "%.3f", prevPitch)
+                    
+                    rollLabel.sizeToFit()
+                    pitchLabel.sizeToFit()
                     
                     print ("Gyroscope Tilt: \(tilt[0]), \(tilt[1])")
                 }
