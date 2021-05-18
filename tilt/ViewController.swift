@@ -19,6 +19,7 @@ class ViewController: UIViewController {
     
     @IBOutlet weak var stopButton: UIButton!
     @IBOutlet weak var accelTilt: UIButton!
+    @IBOutlet weak var gyroTilt: UIButton!
     
     var measureTilt:Bool = true
     
@@ -43,6 +44,10 @@ class ViewController: UIViewController {
         accelBiasNoise.isEnabled = true
         gyroBiasNoise.isEnabled = true
         accelTilt.isEnabled = true
+        gyroTilt.isEnabled = true
+        prevRoll = 0.0
+        prevPitch = 0.0
+//        prevTimestamp = 0.0
         stopAccels()
         stopGyros()
     }
@@ -51,6 +56,12 @@ class ViewController: UIViewController {
         measureTilt = true
         startAccelerometers()
         accelTilt.isEnabled = false
+    }
+
+    @IBAction func measureGyroTilt(_ sender: Any) {
+        measureTilt = true
+        startGyros()
+        gyroTilt.isEnabled = false
     }
     
     let motion = CMMotionManager()
@@ -70,6 +81,10 @@ class ViewController: UIViewController {
     var gyroNoise: [Double] = [Double](repeating: 0.0, count: 3)
     
     var tilt: [Double] = [Double](repeating: 0.0, count: 2) // tilt is only roll and pitch
+    
+    var prevRoll: Double = 0.0
+    var prevPitch: Double = 0.0
+//    var prevTimestamp: Double = 0.0
 
 //    var gyro_file_url:URL?
 //    var gyro_fileHandle:FileHandle?
@@ -162,29 +177,46 @@ class ViewController: UIViewController {
                 let text = "\(timestamp), \(x), \(y), \(z)\n"
                 print ("\(counter) G: \(text)")
                 
-                if counter < numSamples {
-                    counter = counter+1
-                    gyroSum[0] = gyroSum[0] + x
-                    gyroSum[1] = gyroSum[1] + y
-                    gyroSum[2] = gyroSum[2] + z
-                    
-                    gyroSum2[0] = gyroSum2[0] + x*x
-                    gyroSum2[1] = gyroSum2[1] + y*y
-                    gyroSum2[2] = gyroSum2[2] + z*z
-                } else {
-                    for i in 0...2 {
-                        gyroBias[i] = gyroSum[i] / counter
-                        gyroNoise[i] = gyroSum2[i] / counter - gyroBias[i] * gyroBias[i]
-                    }
-                    print ("Gyro Bias: \(gyroBias[0]), \(gyroBias[1]), \(gyroBias[2])")
-                    print ("Gyro Noise: \(gyroNoise[0]), \(gyroNoise[1]), \(gyroNoise[2])")
-                    
-//                    aBias.text = "\(accelBias[0]), \(accelBias[1]), \(accelBias[2])"
+                if !measureTilt {
+                    if counter < numSamples {
+                        counter = counter+1
+                        gyroSum[0] = gyroSum[0] + x
+                        gyroSum[1] = gyroSum[1] + y
+                        gyroSum[2] = gyroSum[2] + z
+                        
+                        gyroSum2[0] = gyroSum2[0] + x*x
+                        gyroSum2[1] = gyroSum2[1] + y*y
+                        gyroSum2[2] = gyroSum2[2] + z*z
+                    } else {
+                        for i in 0...2 {
+                            gyroBias[i] = gyroSum[i] / counter
+                            gyroNoise[i] = gyroSum2[i] / counter - gyroBias[i] * gyroBias[i]
+                        }
+                        print ("Gyro Bias: \(gyroBias[0]), \(gyroBias[1]), \(gyroBias[2])")
+                        print ("Gyro Noise: \(gyroNoise[0]), \(gyroNoise[1]), \(gyroNoise[2])")
+                        
+    //                    aBias.text = "\(accelBias[0]), \(accelBias[1]), \(accelBias[2])"
 
-                    gyroSum = [Double](repeating: 0.0, count: 3)
-                    gyroSum2 = [Double](repeating: 0.0, count: 3)
-                    counter = 0
-                    stop((Any).self)
+                        gyroSum = [Double](repeating: 0.0, count: 3)
+                        gyroSum2 = [Double](repeating: 0.0, count: 3)
+                        counter = 0
+                        stop((Any).self)
+                    }
+                } else {
+                    let dt:Double = 1.0 / 60.0
+                    print("dt: \(dt)")
+
+                    let xn = (x - gyroBias[0]) * dt
+//                    let yn = y - gyroBias[1]
+                    let zn = (z - gyroBias[2]) * dt
+                    
+                    prevRoll = prevRoll + xn
+                    prevPitch = prevPitch + zn
+                    
+                    tilt[0] = prevRoll // roll
+                    tilt[1] = prevPitch // pitch
+                    
+                    print ("Gyroscope Tilt: \(tilt[0]), \(tilt[1])")
                 }
              }
           })

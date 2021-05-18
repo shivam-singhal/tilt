@@ -35,6 +35,9 @@
                                 <rect key="frame" x="157" y="539" width="100" height="30"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <state key="normal" title="Gyroscope Tilt"/>
+                                <connections>
+                                    <action selector="measureGyroTilt:" destination="BYZ-38-t0r" eventType="touchUpInside" id="eAC-Cf-BZQ"/>
+                                </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="e28-Fb-iKr">
                                 <rect key="frame" x="143" y="627" width="130" height="30"/>
@@ -111,6 +114,7 @@
                         <outlet property="gBias" destination="fev-TW-eur" id="Vdq-GR-EJG"/>
                         <outlet property="gNoise" destination="Mq8-Xz-8eW" id="Z56-rY-hsS"/>
                         <outlet property="gyroBiasNoise" destination="dXu-6f-jZH" id="8Rl-Zw-ZMQ"/>
+                        <outlet property="gyroTilt" destination="YHk-XQ-Tag" id="308-ue-UTm"/>
                         <outlet property="stopButton" destination="IGc-89-dtk" id="1Fz-ZZ-3PA"/>
                     </connections>
                 </viewController>
