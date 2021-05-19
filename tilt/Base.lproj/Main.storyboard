@@ -43,6 +43,9 @@
                                 <rect key="frame" x="143" y="627" width="130" height="30"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <state key="normal" title="Complimentary Tilt"/>
+                                <connections>
+                                    <action selector="measureCompTilt:" destination="BYZ-38-t0r" eventType="touchUpInside" id="WDE-bS-NZv"/>
+                                </connections>
                             </button>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Accelerometer Bias" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Kq0-El-G8m">
                                 <rect key="frame" x="133" y="257" width="148" height="21"/>
@@ -111,6 +114,7 @@
                         <outlet property="aNoise" destination="5uI-fn-441" id="cyF-M6-u1F"/>
                         <outlet property="accelBiasNoise" destination="nW2-kI-A58" id="1wx-sP-FPQ"/>
                         <outlet property="accelTilt" destination="eF8-Me-5pV" id="fT3-OP-Plg"/>
+                        <outlet property="compTilt" destination="e28-Fb-iKr" id="slv-xe-KdK"/>
                         <outlet property="gBias" destination="fev-TW-eur" id="Vdq-GR-EJG"/>
                         <outlet property="gNoise" destination="Mq8-Xz-8eW" id="Z56-rY-hsS"/>
                         <outlet property="gyroBiasNoise" destination="dXu-6f-jZH" id="8Rl-Zw-ZMQ"/>

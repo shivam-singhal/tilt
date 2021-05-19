@@ -20,6 +20,7 @@ class ViewController: UIViewController {
     @IBOutlet weak var stopButton: UIButton!
     @IBOutlet weak var accelTilt: UIButton!
     @IBOutlet weak var gyroTilt: UIButton!
+    @IBOutlet weak var compTilt: UIButton!
     
     @IBOutlet weak var rollLabel: UILabel!
     @IBOutlet weak var pitchLabel: UILabel!
@@ -48,11 +49,13 @@ class ViewController: UIViewController {
         gyroBiasNoise.isEnabled = true
         accelTilt.isEnabled = true
         gyroTilt.isEnabled = true
+        compTilt.isEnabled = true
         prevRoll = 0.0
         prevPitch = 0.0
 //        prevTimestamp = 0.0
         stopAccels()
         stopGyros()
+        stopComps()
     }
     
     @IBAction func measureAccelTilt(_ sender: Any) {
@@ -67,9 +70,17 @@ class ViewController: UIViewController {
         gyroTilt.isEnabled = false
     }
     
+    @IBAction func measureCompTilt(_ sender: Any) {
+        measureTilt = true
+        startComps()
+        compTilt.isEnabled = false
+    }
+    
     let motion = CMMotionManager()
     var counter:Double = 0
     let numSamples:Double = 2000
+    let dt:Double = 1.0 / 60.0
+    let alpha:Double = 0.99
     
     var timer_accel:Timer?
     var accelSum: [Double] = [Double](repeating: 0.0, count: 3)
@@ -82,6 +93,8 @@ class ViewController: UIViewController {
     var gyroSum2: [Double] = [Double](repeating: 0.0, count: 3)
     var gyroBias: [Double] = [0.006122914629653678, 0.005937995244341437, -0.01013290776568465]
     var gyroNoise: [Double] = [2.008710893789675e-06, 1.8565217835566259e-06, 1.7285461378278947e-06]
+    
+    var timer_comp:Timer?
     
     var tilt: [Double] = [Double](repeating: 0.0, count: 2) // tilt is only roll and pitch
     
@@ -222,9 +235,6 @@ class ViewController: UIViewController {
                         stop((Any).self)
                     }
                 } else {
-                    let dt:Double = 1.0 / 60.0
-                    print("dt: \(dt)")
-
                     let xn = (x - gyroBias[0]) * dt
                     let yn = (y - gyroBias[1]) * dt
 //                    let zn = (z - gyroBias[2]) * dt
@@ -253,6 +263,73 @@ class ViewController: UIViewController {
        }
     }
     
+    // I'm feeling lazy, so I don't want to refactor. boo hoo
+    func startComps() {
+       if self.motion.isAccelerometerAvailable && motion.isGyroAvailable {
+          self.motion.gyroUpdateInterval = 1.0 / 60.0
+          self.motion.startGyroUpdates()
+        
+            self.motion.accelerometerUpdateInterval = 1.0 / 60.0
+            self.motion.startAccelerometerUpdates()
+                
+          // Configure a timer to fetch the accelerometer data.
+          self.timer_comp = Timer(fire: Date(), interval: (1.0/60.0),
+                 repeats: true, block: { [self] (timer) in
+             // Get the gyro data.
+            if let gyro_data = self.motion.gyroData,
+                let accel_data = self.motion.accelerometerData {
+                
+                let gx = gyro_data.rotationRate.x
+                let gy = gyro_data.rotationRate.y
+//                let gz = gyro_data.rotationRate.z
+                
+                let ax = accel_data.acceleration.x
+                let ay = accel_data.acceleration.y
+                let az = accel_data.acceleration.z
+                                
+//                let timestamp = NSDate().timeIntervalSince1970
+//                let text = "\(timestamp), \(x), \(y), \(z)\n"
+//                print ("\(counter) G: \(text)")
+                
+                if measureTilt {
+                    let gxn = (gx - gyroBias[0]) * dt
+                    let gyn = (gy - gyroBias[1]) * dt
+//                    let zn = (z - gyroBias[2]) * dt
+                    
+                    // because of how I defined pitch/roll
+                    // pitch corresponds with x-axis, and roll with y-axis
+                    prevRoll = prevRoll + gyn
+                    prevPitch = prevPitch + gxn
+                    
+                    let norm:Double = sqrt(ax*ax + ay*ay + az*az)
+                    let axn = ax / norm
+                    let ayn = ay / norm
+                    let azn = az / norm
+                    
+                    var roll:Double = atan2(-axn, azn) // -pi to pi
+                    roll = -copysign(1.0, roll) * (Double.pi - abs(roll))
+                    var pitch:Double = -atan2(-ayn, copysign(1.0, azn) * sqrt(axn*axn + azn*azn))
+                    pitch = -copysign(1.0, pitch) * (Double.pi - abs(pitch))
+                    
+                    tilt[0] = alpha * prevRoll + (1.0 - alpha) * roll // roll
+                    tilt[1] = alpha * prevPitch + (1.0 - alpha) * pitch // pitch
+                    
+                    rollLabel.text = String(format: "%.3f", tilt[0])
+                    pitchLabel.text = String(format: "%.3f", tilt[1])
+                    
+                    rollLabel.sizeToFit()
+                    pitchLabel.sizeToFit()
+                    
+                    print ("Complimentary Tilt: \(tilt[0]), \(tilt[1])")
+                }
+             }
+          })
+
+          // Add the timer to the current run loop.
+          RunLoop.current.add(self.timer_comp!, forMode: RunLoop.Mode.default)
+       }
+    }
+    
     func stopAccels() {
        if self.timer_accel != nil {
           self.timer_accel?.invalidate()
@@ -270,6 +347,16 @@ class ViewController: UIViewController {
           self.motion.stopGyroUpdates()
 
 //           gyro_fileHandle!.closeFile()
+       }
+    }
+    
+    func stopComps() {
+       if self.timer_comp != nil {
+          self.timer_comp?.invalidate()
+          self.timer_comp = nil
+
+          self.motion.stopAccelerometerUpdates()
+          self.motion.stopGyroUpdates()
        }
     }
     
