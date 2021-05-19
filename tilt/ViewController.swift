@@ -59,19 +59,22 @@ class ViewController: UIViewController {
     }
     
     @IBAction func measureAccelTilt(_ sender: Any) {
-        measureTilt = true
+//        measureTilt = true
+        startTiltMeasure(tiltType: "accelerometer_tilt")
         startAccelerometers()
         accelTilt.isEnabled = false
     }
 
     @IBAction func measureGyroTilt(_ sender: Any) {
-        measureTilt = true
+//        measureTilt = true
+        startTiltMeasure(tiltType: "gyroscope_tilt")
         startGyros()
         gyroTilt.isEnabled = false
     }
     
     @IBAction func measureCompTilt(_ sender: Any) {
-        measureTilt = true
+//        measureTilt = true
+        startTiltMeasure(tiltType: "complimentary_tilt")
         startComps()
         compTilt.isEnabled = false
     }
@@ -100,14 +103,9 @@ class ViewController: UIViewController {
     
     var prevRoll: Double = 0.0
     var prevPitch: Double = 0.0
-//    var prevTimestamp: Double = 0.0
 
-//    var gyro_file_url:URL?
-//    var gyro_fileHandle:FileHandle?
-    
-    // TODO: make another timer for complementary filter
-    
-    // TODO make file handles for tilt
+    var tilt_file_url:URL?
+    var tilt_fileHandle:FileHandle?
     
     func startAccelerometers() {
        // Make sure the accelerometer hardware is available.
@@ -172,13 +170,15 @@ class ViewController: UIViewController {
                     tilt[0] = roll // roll
                     tilt[1] = pitch // pitch
                     
-                    rollLabel.text = String(format: "%.3f", roll)
-                    pitchLabel.text = String(format: "%.3f", pitch)
+//                    rollLabel.text = String(format: "%.3f", roll)
+//                    pitchLabel.text = String(format: "%.3f", pitch)
+//
+//                    rollLabel.sizeToFit()
+//                    pitchLabel.sizeToFit()
+//
+//                    print ("Accelerometer Tilt: \(tilt[0]), \(tilt[1])")
                     
-                    rollLabel.sizeToFit()
-                    pitchLabel.sizeToFit()
-                    
-                    print ("Accelerometer Tilt: \(tilt[0]), \(tilt[1])")
+                    outputTilt(tiltType: "accelerometer_tilt")
                 }
              }
           })
@@ -247,13 +247,16 @@ class ViewController: UIViewController {
                     tilt[0] = prevRoll // roll
                     tilt[1] = prevPitch // pitch
                     
-                    rollLabel.text = String(format: "%.3f", prevRoll)
-                    pitchLabel.text = String(format: "%.3f", prevPitch)
+//                    rollLabel.text = String(format: "%.3f", prevRoll)
+//                    pitchLabel.text = String(format: "%.3f", prevPitch)
+//
+//                    rollLabel.sizeToFit()
+//                    pitchLabel.sizeToFit()
+//
+//                    print ("Gyroscope Tilt: \(tilt[0]), \(tilt[1])")
                     
-                    rollLabel.sizeToFit()
-                    pitchLabel.sizeToFit()
-                    
-                    print ("Gyroscope Tilt: \(tilt[0]), \(tilt[1])")
+                    outputTilt(tiltType: "gyroscope_tilt")
+
                 }
              }
           })
@@ -314,13 +317,15 @@ class ViewController: UIViewController {
                     tilt[0] = alpha * prevRoll + (1.0 - alpha) * roll // roll
                     tilt[1] = alpha * prevPitch + (1.0 - alpha) * pitch // pitch
                     
-                    rollLabel.text = String(format: "%.3f", tilt[0])
-                    pitchLabel.text = String(format: "%.3f", tilt[1])
+//                    rollLabel.text = String(format: "%.3f", tilt[0])
+//                    pitchLabel.text = String(format: "%.3f", tilt[1])
+//
+//                    rollLabel.sizeToFit()
+//                    pitchLabel.sizeToFit()
+//
+//                    print ("Complimentary Tilt: \(tilt[0]), \(tilt[1])")
                     
-                    rollLabel.sizeToFit()
-                    pitchLabel.sizeToFit()
-                    
-                    print ("Complimentary Tilt: \(tilt[0]), \(tilt[1])")
+                    outputTilt(tiltType: "complimentary_tilt")
                 }
              }
           })
@@ -336,6 +341,8 @@ class ViewController: UIViewController {
           self.timer_accel = nil
 
           self.motion.stopAccelerometerUpdates()
+        
+          tilt_fileHandle!.closeFile()
        }
     }
     
@@ -346,7 +353,7 @@ class ViewController: UIViewController {
 
           self.motion.stopGyroUpdates()
 
-//           gyro_fileHandle!.closeFile()
+          tilt_fileHandle!.closeFile()
        }
     }
     
@@ -357,7 +364,45 @@ class ViewController: UIViewController {
 
           self.motion.stopAccelerometerUpdates()
           self.motion.stopGyroUpdates()
+        
+          tilt_fileHandle!.closeFile()
        }
+    }
+    
+    private func startTiltMeasure(tiltType:String) {
+        do {
+            // get timestamp in epoch time
+            let ts = NSDate().timeIntervalSince1970
+            let file = "\(tiltType)_file_\(ts).txt"
+            if let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
+                tilt_file_url = dir.appendingPathComponent(file)
+            }
+            
+            // write first line of file
+            try "ts,roll,pitch\n".write(to: tilt_file_url!, atomically: true, encoding: String.Encoding.utf8)
+
+            tilt_fileHandle = try FileHandle(forWritingTo: tilt_file_url!)
+            tilt_fileHandle!.seekToEndOfFile()
+            measureTilt = true
+        } catch {
+            print("Error writing to file \(error)")
+        }
+    }
+    
+    private func outputTilt(tiltType:String) {
+        rollLabel.text = String(format: "%.3f", tilt[0])
+        pitchLabel.text = String(format: "%.3f", tilt[1])
+        
+        rollLabel.sizeToFit()
+        pitchLabel.sizeToFit()
+        
+        print ("\(tiltType): \(tilt[0]), \(tilt[1])")
+        
+        let timestamp = NSDate().timeIntervalSince1970
+        let text = "\(timestamp), \(tilt[0]), \(tilt[1])\n"
+//        print ("A: \(text)")
+        
+        self.tilt_fileHandle!.write(text.data(using: .utf8)!)
     }
     
 }
