@@ -74,7 +74,7 @@ class ViewController: UIViewController {
     
     @IBAction func measureCompTilt(_ sender: Any) {
 //        measureTilt = true
-        startTiltMeasure(tiltType: "complimentary_tilt")
+        startTiltMeasure(tiltType: "complementary_tilt")
         startComps()
         compTilt.isEnabled = false
     }
@@ -83,7 +83,7 @@ class ViewController: UIViewController {
     var counter:Double = 0
     let numSamples:Double = 2000
     let dt:Double = 1.0 / 60.0
-    let alpha:Double = 0.99
+    let alpha:Double = 0.8
     
     var timer_accel:Timer?
     var accelSum: [Double] = [Double](repeating: 0.0, count: 3)
@@ -323,9 +323,9 @@ class ViewController: UIViewController {
 //                    rollLabel.sizeToFit()
 //                    pitchLabel.sizeToFit()
 //
-//                    print ("Complimentary Tilt: \(tilt[0]), \(tilt[1])")
+//                    print ("complementary Tilt: \(tilt[0]), \(tilt[1])")
                     
-                    outputTilt(tiltType: "complimentary_tilt")
+                    outputTilt(tiltType: "complementary_tilt")
                 }
              }
           })
