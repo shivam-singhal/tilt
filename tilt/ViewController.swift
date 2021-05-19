@@ -113,8 +113,8 @@ class ViewController: UIViewController {
                 let y = data.acceleration.y
                 let z = data.acceleration.z
                 
-                let timestamp = NSDate().timeIntervalSince1970
-                let text = "\(timestamp), \(x), \(y), \(z)\n"
+//                let timestamp = NSDate().timeIntervalSince1970
+//                let text = "\(timestamp), \(x), \(y), \(z)\n"
 //                print ("\(counter) A: \(text)")
                 
                 if !measureTilt {
@@ -151,8 +151,10 @@ class ViewController: UIViewController {
                     let yn = y / norm
                     let zn = z / norm
                     
-                    let roll:Double = -atan2(-xn, zn)
-                    let pitch:Double = -atan2(-yn, copysign(1.0, zn) * sqrt(xn*xn + zn*zn))
+                    var roll:Double = atan2(-xn, zn) // -pi to pi
+                    roll = -copysign(1.0, roll) * (Double.pi - abs(roll))
+                    var pitch:Double = -atan2(-yn, copysign(1.0, zn) * sqrt(xn*xn + zn*zn))
+                    pitch = -copysign(1.0, pitch) * (Double.pi - abs(pitch))
                     
                     tilt[0] = roll // roll
                     tilt[1] = pitch // pitch
@@ -187,8 +189,8 @@ class ViewController: UIViewController {
                 let y = data.rotationRate.y
                 let z = data.rotationRate.z
                                 
-                let timestamp = NSDate().timeIntervalSince1970
-                let text = "\(timestamp), \(x), \(y), \(z)\n"
+//                let timestamp = NSDate().timeIntervalSince1970
+//                let text = "\(timestamp), \(x), \(y), \(z)\n"
 //                print ("\(counter) G: \(text)")
                 
                 if !measureTilt {
@@ -225,7 +227,7 @@ class ViewController: UIViewController {
 
                     let xn = (x - gyroBias[0]) * dt
                     let yn = (y - gyroBias[1]) * dt
-                    let zn = (z - gyroBias[2]) * dt
+//                    let zn = (z - gyroBias[2]) * dt
                     
                     // because of how I defined pitch/roll
                     // pitch corresponds with x-axis, and roll with y-axis
